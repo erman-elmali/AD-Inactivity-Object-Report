@@ -1,91 +1,110 @@
 # Active Directory Inactive Users and Computers Report
 
 ## Overview
-This script generates an HTML report, CSV files, and sends an email containing details of inactive users and computers in Active Directory. It is designed to help system administrators monitor inactive accounts and take necessary actions, such as moving them to a disabled organizational unit (OU).
+This PowerShell script is designed to generate reports identifying inactive users and computers in Active Directory. It helps system administrators monitor inactive accounts, evaluate their statuses, and determine if they should be moved to a "disabled" organizational unit (OU) for better management.
 
 ---
 
 ## Features
-- Generates a structured **HTML Report** with inactive user and computer details.
-- Exports inactive user and computer data to **CSV files** for further analysis.
-- Automatically emails the generated report to specified recipients.
-- Categorizes inactive users and computers based on inactivity durations (e.g., 90 days, 120 days).
+- **HTML Report:** A detailed report with categorized inactive user and computer information.
+- **CSV Exports:** Raw data for inactive users and computers saved in separate CSV files for further analysis.
+- **Email Notification:** Sends the HTML report via email to specified recipients, allowing for quick access and sharing.
+- **Custom Thresholds:** Categorizes accounts based on inactivity durations (e.g., 90 days for users, 60 days for computers, etc.).
+- **OU Checks:** Verifies if inactive accounts are already located in designated "disabled" OUs.
 
 ---
 
 ## Prerequisites
-1. **Active Directory Module for Windows PowerShell** must be installed and configured.
-2. The script requires access to the **SMTP Server** for sending emails.
-3. Ensure proper permissions to generate and save reports on the shared folder path (`\\Share\Reports\`).
-
----
-
-## How It Works
-1. **Fetch Data:** The script queries Active Directory for user and computer accounts that have been inactive for specific durations.
-2. **Generate Report:** Creates a user-friendly HTML report containing:
-   - Total active users, computers, and service accounts.
-   - Breakdown of inactive user and computer counts based on inactivity duration.
-3. **Save Data:**
-   - Exports detailed data for inactive accounts into CSV files.
-   - Saves the HTML report to a specified directory.
-4. **Email Report:** Sends the HTML report via email to designated recipients with optional BCC recipients.
+1. **Active Directory Module for Windows PowerShell:** The module must be installed and available on the machine running the script.
+2. **SMTP Server Access:** The script requires a valid SMTP server to send email notifications.
+3. **Permissions:** Ensure the account running the script has:
+   - Read access to query Active Directory.
+   - Write permissions to save reports to the specified directory.
+4. Configure the variables such as OUs, SMTP settings, and thresholds according to your environment.
 
 ---
 
 ## Configuration
-### Variables to Configure
-- `$domainName`: The domain name for the report title.
-- `$inactiveUsers90`, `$inactiveUsers120`, `$inactiveComputers60`, `$inactiveComputers90`: Data collections of inactive users and computers.
-- **SMTP Configuration:**
-  - `$smtpServer`: The SMTP server address.
+### Adjustable Variables
+Before running the script, modify the following:
+- **Domain and OUs:**
+  - `$domainName`: Automatically fetched from your Active Directory.
+  - `$disableUsersOU` and `$disableComputersOU`: Specify the distinguished names of your disabled users and computers OUs.
+- **Inactivity Thresholds:**
+  - Users: 90 and 120 days.
+  - Computers: 60 and 90 days.
+- **SMTP Settings:**
+  - `$smtpServer`: Your organization's SMTP server address.
   - `$smtpFrom`: Sender's email address.
-  - `$smtpTo`: Recipient's email address(es).
-  - Add BCC recipients using `$mailMessage.Bcc.Add()` if required.
+  - `$smtpTo`: Recipient's email address(es). You can add more using `BCC`.
 - **File Paths:**
-  - `$reportPath`: Location to save the HTML report.
-  - CSV paths for inactive users and computers, e.g., `\\Share\Reports\InactiveUsers90.csv`.
+  - `$reportPath`: Directory path to save the HTML report.
+  - CSV file paths: Adjust as needed, e.g., `\\Share\Reports\InactiveUsers90.csv`.
+
+---
+
+## How It Works
+1. **Data Retrieval:** Queries Active Directory for:
+   - Enabled and disabled user and computer accounts.
+   - Inactive users (e.g., 90 days, 120 days).
+   - Inactive computers (e.g., 60 days, 90 days).
+2. **Report Creation:** Combines the retrieved data into a formatted HTML report.
+3. **CSV Export:** Exports detailed inactive account data into categorized CSV files.
+4. **Email Notification:** Sends the HTML report as an email attachment.
+
+---
+
+## Outputs
+1. **HTML Report:** Displays:
+   - Total active users, computers, and service accounts.
+   - Counts of inactive users and computers by duration.
+   - Detailed tables for each category, including OU verification.
+2. **CSV Files:** Saved for detailed analysis:
+   - `InactiveUsers90.csv`
+   - `InactiveUsers120.csv`
+   - `InactiveComputers60.csv`
+   - `InactiveComputers90.csv`
+3. **Email Delivery:** Sends the HTML report to the specified recipients.
 
 ---
 
 ## Usage
 1. Open PowerShell with administrator privileges.
-2. Modify the script to include your domain name, SMTP details, and any other configurations.
-3. Run the script to generate the report and send it via email.
+2. Edit the script to reflect your Active Directory environment and organizational requirements.
+3. Run the script to:
+   - Generate an HTML report and CSV files.
+   - Send the report via email.
+4. Review the outputs in the specified file paths and email inbox.
 
 ---
 
-## Output
-1. **HTML Report:** Contains a summary and detailed breakdown of inactive accounts.
-2. **CSV Files:** Raw data for inactive users and computers, categorized by inactivity duration:
-   - `InactiveUsers90.csv`
-   - `InactiveUsers120.csv`
-   - `InactiveComputers60.csv`
-   - `InactiveComputers90.csv`
-3. **Email:** The report is sent to specified recipients with the HTML file attached.
+## Example Outputs
+### HTML Report Summary
+- **Total active accounts (users, computers, service accounts).**
+- **Breakdown of inactive accounts by duration:**
+  - Users inactive for 90 and 120 days.
+  - Computers inactive for 60 and 90 days.
 
----
-
-## Customization
-- Adjust the inactivity thresholds (e.g., 60 days, 90 days) to suit your organizational policy.
-- Add additional fields or filters if required, such as specific OUs.
-
----
-
-## Notes
-- This script is designed for use in environments with strict permissions and policies. Test the script in a non-production environment before deployment.
-- The HTML report's styling and structure can be customized within the script.
+### Sample CSV File
+A CSV file (`InactiveUsers90.csv`) includes columns like:
+- **Name:** Account name.
+- **Last Login:** Timestamp of the last logon.
+- **Enabled:** Whether the account is active.
+- **In Disabled OU?:** If the account is in the specified disabled OU.
 
 ---
 
 ## Troubleshooting
-- Ensure that the script has appropriate permissions to access and write to the specified paths.
-- Verify SMTP configuration if emails are not being sent.
-- Debug Active Directory queries to ensure they return the expected results.
+- **SMTP Issues:** Verify that the SMTP server and port are accessible.
+- **Permission Denied:** Ensure that the PowerShell user account has sufficient permissions for Active Directory and file system access.
+- **No Data Retrieved:** Check the search base OUs and inactivity thresholds for correctness.
 
 ---
+
 ## Created By
 **Erman ELMALI**
 
 ---
+
 ## License
-This script is provided as-is and is intended for educational and organizational use. Modify and use it at your own discretion.
+This script is provided as-is and is intended for internal organizational use. Modify and use it at your discretion.
